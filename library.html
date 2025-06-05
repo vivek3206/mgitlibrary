@@ -385,8 +385,8 @@
     <nav class="navbar">
         <div class="nav-content">
             <div class="logo-section">
-                <a href="launch.html">
-                    <img src="mgit-logo.png" alt="MGIT Logo" class="logo">
+                <a href="./launch.html">
+                    <img src="./mgit-logo.png" alt="MGIT Logo" class="logo">
                 </a>
                 <h1 class="nav-title">Knowledge Navigator</h1>
             </div>
@@ -397,9 +397,9 @@
             </div>
 
             <div class="nav-links">
-                <a href="launch.html" class="nav-link">Home</a>
-                <a href="library.html" class="nav-link active">Library</a>
-                <a href="index.html" class="nav-link">Browse All</a>
+                <a href="./launch.html" class="nav-link">Home</a>
+                <a href="./library.html" class="nav-link active">Library</a>
+                <a href="./index.html" class="nav-link">Browse All</a>
             </div>
         </div>
     </nav>
@@ -420,22 +420,139 @@
     </main>
 
     <script>
+        // ESP8266 Configuration
+        const ESP_IP = "192.168.29.234"; // Your ESP8266's IP address
+
         // Sample data - replace with your actual data
         const books = [
             {
                 title: "Data Structures and Algorithms",
                 author: "Thomas H. Cormen",
                 image: "https://via.placeholder.com/200x300",
-                category: "Computer Science"
+                category: "Computer Science",
+                location: "CS101"
+            },
+            {
+                title: "Computer Networks",
+                author: "Andrew S. Tanenbaum",
+                image: "https://via.placeholder.com/200x300",
+                category: "Computer Science",
+                location: "CS102"
             },
             {
                 title: "Digital Electronics",
                 author: "Morris Mano",
                 image: "https://via.placeholder.com/200x300",
-                category: "Electronics"
+                category: "Electronics",
+                location: "EC101"
             },
-            // Add more books as needed
+            {
+                title: "Digital Signal Processing",
+                author: "John G. Proakis",
+                image: "https://via.placeholder.com/200x300",
+                category: "Electronics",
+                location: "EC102"
+            },
+            {
+                title: "Engineering Mechanics",
+                author: "R.C. Hibbeler",
+                image: "https://via.placeholder.com/200x300",
+                category: "Mechanical",
+                location: "ME101"
+            },
+            {
+                title: "Thermodynamics",
+                author: "P.K. Nag",
+                image: "https://via.placeholder.com/200x300",
+                category: "Mechanical",
+                location: "ME102"
+            },
+            {
+                title: "Structural Analysis",
+                author: "R. Agor",
+                image: "https://via.placeholder.com/200x300",
+                category: "Civil",
+                location: "CV101"
+            },
+            {
+                title: "Surveying",
+                author: "B.C. Punmia",
+                image: "https://via.placeholder.com/200x300",
+                category: "Civil",
+                location: "CV102"
+            },
+            {
+                title: "Engineering Mathematics",
+                author: "B.S. Grewal",
+                image: "https://via.placeholder.com/200x300",
+                category: "Reference",
+                location: "RF101"
+            },
+            {
+                title: "Engineering Physics",
+                author: "M.N. Avadhanulu",
+                image: "https://via.placeholder.com/200x300",
+                category: "Reference",
+                location: "RF102"
+            }
         ];
+
+        async function navigateToBook(bookLocation) {
+            try {
+                // Show loading state
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Navigating...';
+                button.disabled = true;
+
+                // Create AbortController for timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+                const response = await fetch(
+                    `http://${ESP_IP}/book?location=${encodeURIComponent(bookLocation)}`,
+                    { signal: controller.signal }
+                );
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.text();
+                console.log("ESP8266 Response:", data);
+                
+                // Show success message
+                button.innerHTML = '<i class="fas fa-check"></i> Found!';
+                button.style.backgroundColor = '#27ae60';
+                
+                // Reset button after 3 seconds
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.backgroundColor = '';
+                    button.disabled = false;
+                }, 3000);
+                
+            } catch (error) {
+                console.error("Error communicating with ESP8266:", error);
+                
+                // Show error state
+                button.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                button.style.backgroundColor = '#e74c3c';
+                
+                // Reset button after 3 seconds
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.backgroundColor = '';
+                    button.disabled = false;
+                }, 3000);
+                
+                if (error.name === 'AbortError') {
+                    console.log("Connection timed out. ESP8266 might be offline.");
+                }
+            }
+        }
 
         function createBookCard(book) {
             return `
@@ -445,7 +562,7 @@
                         <h3 class="book-title">${book.title}</h3>
                         <p class="book-author">By ${book.author}</p>
                         <div class="book-actions">
-                            <button class="action-btn navigate-btn">
+                            <button class="action-btn navigate-btn" onclick="navigateToBook('${book.location}')">
                                 <i class="fas fa-map-marker-alt"></i> Navigate
                             </button>
                             <button class="action-btn details-btn">
@@ -456,6 +573,25 @@
                 </div>
             `;
         }
+
+        // Add success/error message styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .navigate-btn.success {
+                background-color: #27ae60 !important;
+            }
+            .navigate-btn.error {
+                background-color: #e74c3c !important;
+            }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            .fa-spin {
+                animation: spin 1s linear infinite;
+            }
+        `;
+        document.head.appendChild(style);
 
         // Populate books
         const booksGrid = document.querySelector('.books-grid');
@@ -469,7 +605,16 @@
             button.addEventListener('click', () => {
                 categoryButtons.forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
-                // Add filter logic here
+                
+                const category = button.textContent;
+                const filteredBooks = category === 'All Books' 
+                    ? books 
+                    : books.filter(book => book.category === category);
+                
+                booksGrid.innerHTML = '';
+                filteredBooks.forEach(book => {
+                    booksGrid.innerHTML += createBookCard(book);
+                });
             });
         });
 
@@ -477,7 +622,16 @@
         const searchInput = document.querySelector('.search-bar input');
         searchInput.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
-            // Add search logic here
+            const filteredBooks = books.filter(book => 
+                book.title.toLowerCase().includes(searchTerm) ||
+                book.author.toLowerCase().includes(searchTerm) ||
+                book.category.toLowerCase().includes(searchTerm)
+            );
+            
+            booksGrid.innerHTML = '';
+            filteredBooks.forEach(book => {
+                booksGrid.innerHTML += createBookCard(book);
+            });
         });
     </script>
 </body>
