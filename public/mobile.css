@@ -1,0 +1,48 @@
+/* Mobile Styles */
+@media screen and (max-width: 768px) {
+    main {
+        padding: 1rem;
+    }
+
+    .logo-container {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .logo {
+        height: 40px;
+    }
+
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    .welcome h2 {
+        font-size: 1.3rem;
+    }
+
+    .welcome p {
+        font-size: 0.9rem;
+    }
+
+    .book-card {
+        flex: 0 0 160px;
+    }
+
+    .book-card img {
+        height: 220px;
+    }
+
+    .book-card h3 {
+        font-size: 1rem;
+    }
+
+    .book-card p {
+        font-size: 0.8rem;
+    }
+
+    .navigate-btn {
+        padding: 0.4rem;
+        font-size: 0.9rem;
+    }
+} 
